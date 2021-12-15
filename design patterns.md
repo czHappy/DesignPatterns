@@ -63,6 +63,13 @@
     - [优缺点](#优缺点-8)
     - [适用场景](#适用场景-6)
     - [code](#code-2)
+  - [Facade模式](#facade模式)
+    - [主要思想](#主要思想-9)
+    - [引例](#引例-9)
+  - [要素](#要素-9)
+    - [优缺点](#优缺点-9)
+    - [适用场景](#适用场景-7)
+    - [代码](#代码-6)
 ## Factory Method
 ### 主要思想
 - 定义一个创建对象的接口，但让实现这个接口的类来决定实例化哪个类。工厂方法让类的实例化推迟到子类中进行。
@@ -1714,3 +1721,152 @@ void test_decorator() {
 #endif /* Decorator_h */
 
 ```
+
+
+## Facade模式
+### 主要思想
+- 门面模式(Facade Pattern)：外部与一个子系统的通信必须通过一个统一的外观对象进行，为子系统中的一组接口提供一个一致的界面，外观模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。门面模式又称为外观模式，它是一种对象结构型模式。
+### 引例
+- 现代的软件系统都非常复杂，尽管我们已经想尽一切方法将其“分而治之”，把一个系统划分为好几个较小的子系统了，但是仍然可能会存在这样的问题：子系统内有非常多的类，客户端往往需要和许多对象打交道之后 才能完成想要完成的功能。在我们的生活中医院就是这样的。一般的医院都会分为挂号、门诊、化验、收费、取药等。看病的病人要想治好自己的病（相当于一个客户端想要实现自己的功能）就要和医院的各个部门打交道。首先，病人需要挂号，然后门诊，如果医生要求化验的话，病人就要去化验，然后再回到门诊室，最后拿药，经过一系列复杂的过程后才能完成看病的过程。解决这种不便的方式就是引入门面模式。如果我们在医院设立一个接待员的话，病人只负责和接待员接触，由接待员负责与医院的各个部门打交道。
+![](imgs/11.png)
+![](imgs/12.png)
+## 要素
+- Subsystem： 子系统的抽象类
+- ConcreteSubsystem：具体的子系统，继承Subsystem
+- Facade：持有了各个子系统的指针，客户端与Facade打交道，Facade把事情交给各个子系统去做。
+![](imgs/13.png)
+### 优缺点
+- 优点
+  - 对客户屏蔽子系统组件，减少了客户处理的对象数目并使得子系统使用起来更加容易。通过引入门面模式，客户代码将变得很简单，与之关联的对象也很少。
+  - 实现了子系统与客户之间的松耦合关系，这使得子系统的组件变化不会影响到调用它的客户类，只需要调整外观类即可。
+  - 降低了大型软件系统中的编译依赖性，并简化了系统在不同平台之间的移植过程，因为编译一个子系统一般不需要编译所有其他的子系统。一个子系统的修改对其他子系统没有任何影响，而且子系统内部变化也不会影响到外观对象。
+  - 只是提供了一个访问子系统的统一入口，并不影响用户直接使用子系统类。
+
+- 缺点
+  - 不能很好地限制客户使用子系统类，如果对客户访问子系统类做太多的限制则减少了可变性和灵活性。
+  - 在不引入抽象外观类的情况下，增加新的子系统可能需要修改外观类或客户端的源代码，违背了“开闭原则”。
+
+
+### 适用场景
+- 当要为一个复杂子系统提供一个简单接口时可以使用外观模式。该接口可以满足大多数用户的需求，而且用户也可以越过外观类直接访问子系统。
+- 客户程序与多个子系统之间存在很大的依赖性。引入外观类将子系统与客户以及其他子系统解耦，可以提高子系统的独立性和可移植性。
+- 在层次化结构中，可以使用外观模式定义系统中每一层的入口，层与层之间不直接产生联系，而通过外观类建立联系，降低层之间的耦合度。
+
+### 代码
+```c++
+//
+//  Facade.h
+//  DesignPatterns
+//
+//  Created by cz-mac on 2021/12/15.
+//
+
+#ifndef Facade_h
+#define Facade_h
+/**
+ * The Subsystem can accept requests either from the facade or client directly.
+ * In any case, to the Subsystem, the Facade is yet another client, and it's not
+ * a part of the Subsystem.
+ */
+class Subsystem1 {
+ public:
+  std::string Operation1() const {
+    return "Subsystem1: Ready!\n";
+  }
+  // ...
+  std::string OperationN() const {
+    return "Subsystem1: Go!\n";
+  }
+};
+/**
+ * Some facades can work with multiple subsystems at the same time.
+ */
+class Subsystem2 {
+ public:
+  std::string Operation1() const {
+    return "Subsystem2: Get ready!\n";
+  }
+  // ...
+  std::string OperationZ() const {
+    return "Subsystem2: Fire!\n";
+  }
+};
+
+/**
+ * The Facade class provides a simple interface to the complex logic of one or
+ * several subsystems. The Facade delegates the client requests to the
+ * appropriate objects within the subsystem. The Facade is also responsible for
+ * managing their lifecycle. All of this shields the client from the undesired
+ * complexity of the subsystem.
+ */
+class Facade {
+ protected:
+  Subsystem1 *subsystem1_;
+  Subsystem2 *subsystem2_;
+  /**
+   * Depending on your application's needs, you can provide the Facade with
+   * existing subsystem objects or force the Facade to create them on its own.
+   */
+ public:
+  /**
+   * In this case we will delegate the memory ownership to Facade Class
+   */
+  Facade(
+      Subsystem1 *subsystem1 = nullptr,
+      Subsystem2 *subsystem2 = nullptr) {
+    this->subsystem1_ = subsystem1 ?: new Subsystem1;
+    this->subsystem2_ = subsystem2 ?: new Subsystem2;
+  }
+  ~Facade() {
+    delete subsystem1_;
+    delete subsystem2_;
+  }
+  /**
+   * The Facade's methods are convenient shortcuts to the sophisticated
+   * functionality of the subsystems. However, clients get only to a fraction of
+   * a subsystem's capabilities.
+   */
+  std::string Operation() {
+    std::string result = "Facade initializes subsystems:\n";
+    result += this->subsystem1_->Operation1();
+    result += this->subsystem2_->Operation1();
+    result += "Facade orders subsystems to perform the action:\n";
+    result += this->subsystem1_->OperationN();
+    result += this->subsystem2_->OperationZ();
+    return result;
+  }
+};
+
+/**
+ * The client code works with complex subsystems through a simple interface
+ * provided by the Facade. When a facade manages the lifecycle of the subsystem,
+ * the client might not even know about the existence of the subsystem. This
+ * approach lets you keep the complexity under control.
+ */
+void ClientCode(Facade *facade) {
+  // ...
+  std::cout << facade->Operation();
+  // ...
+}
+/**
+ * The client code may have some of the subsystem's objects already created. In
+ * this case, it might be worthwhile to initialize the Facade with these objects
+ * instead of letting the Facade create new instances.
+ */
+
+void test_facade() {
+  Subsystem1 *subsystem1 = new Subsystem1;
+  Subsystem2 *subsystem2 = new Subsystem2;
+  Facade *facade = new Facade(subsystem1, subsystem2);
+  ClientCode(facade);
+
+  delete facade;
+
+  return ;
+}
+
+#endif /* Facade_h */
+
+
+```
+
